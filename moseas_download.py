@@ -1,6 +1,9 @@
 import argparse
+from typing import List
 import pandas as pd
 import sys
+from youtube_dl import YoutubeDL
+import os
 
 
 def parse_args() -> argparse.Namespace:
@@ -15,16 +18,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--link', action="store_true",
                         help='Add if the file contains links and not video ids')
     parser.add_argument('--lines', type=int, default=-1,
-                        help='Number of videos to download, default=all')
+                        help='Number of videos to download, negative numbers index from the end. Default=-1')
     parser.set_defaults(link=False)
     args = parser.parse_args()
     return args
 
 
-def main():
+def get_links(args: argparse.Namespace) -> List[str]:
     LINK_PREFIX = 'https://www.youtube.com/watch?v='
-
-    args: argparse.Namespace = parse_args()
 
     table: pd.DataFrame
     try:
@@ -42,7 +43,21 @@ def main():
 
     if not args.link:
         links = links.map(lambda x: LINK_PREFIX + x)
-    print(links)
+
+    links = links.iloc[:args.lines]
+    return links.tolist()
+
+
+def download(args: argparse.Namespace, links: List[str]):
+    ydl: YoutubeDL = YoutubeDL(
+        {'outtmpl': os.path.join(args.dir, '%(id)s.%(ext)s')})
+    ydl.download(links)
+
+
+def main():
+    args: argparse.Namespace = parse_args()
+    links: List[str] = get_links(args)
+    download(args, links)
 
 
 if __name__ == '__main__':
