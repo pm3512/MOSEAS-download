@@ -2,7 +2,7 @@ import argparse
 from typing import List
 import pandas as pd
 import sys
-from youtube_dl import YoutubeDL
+import youtube_dl
 import os
 
 
@@ -48,17 +48,20 @@ def get_links(args: argparse.Namespace) -> List[str]:
     return links.tolist()
 
 
-def download(args: argparse.Namespace, links: List[str]):
-    ydl: YoutubeDL = YoutubeDL(
+def download(links: List[str], args: argparse.Namespace):
+    ydl: youtube_dl.YoutubeDL = youtube_dl.YoutubeDL(
         {'outtmpl': os.path.join(args.dir, '%(id)s.%(ext)s')})
-    ydl.download(links)
+    for link in links:
+        try: 
+            ydl.download([link])
+        except Exception as e:
+            pass
 
 
 def main():
     args: argparse.Namespace = parse_args()
     links: List[str] = get_links(args)
-    download(args, links)
-
+    download(links, args)
 
 if __name__ == '__main__':
     main()
