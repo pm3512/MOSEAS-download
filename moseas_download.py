@@ -44,8 +44,13 @@ def get_links(args: argparse.Namespace) -> List[str]:
     if not args.link:
         links = links.map(lambda x: LINK_PREFIX + x)
 
-    links = links.iloc[:args.lines]
-    return links.tolist()
+    if args.lines > len(links) or args.lines < -len(links):
+      print("Illegal number of lines for the provided file")
+      sys.exit()
+    links = links.tolist()
+    links.append("")
+    links = links[:args.lines]
+    return links
 
 
 def download(links: List[str], args: argparse.Namespace):
