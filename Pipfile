@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 pandas = "*"
-youtube-dl = "*"
+yt-dlp = "*"
 
 [dev-packages]
 

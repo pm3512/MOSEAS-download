@@ -2,7 +2,7 @@ import argparse
 from typing import List
 import pandas as pd
 import sys
-import youtube_dl
+import yt_dlp
 import os
 
 
@@ -49,7 +49,7 @@ def get_links(args: argparse.Namespace) -> List[str]:
 
 
 def download(links: List[str], args: argparse.Namespace):
-    ydl: youtube_dl.YoutubeDL = youtube_dl.YoutubeDL(
+    ydl: yt_dlp.YoutubeDL = yt_dlp.YoutubeDL(
         {'outtmpl': os.path.join(args.dir, '%(id)s.%(ext)s'), 'format': '137/136/135/best'})
     for link in links:
         try: 
