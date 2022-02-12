@@ -50,7 +50,7 @@ def get_links(args: argparse.Namespace) -> List[str]:
 
 def download(links: List[str], args: argparse.Namespace):
     ydl: youtube_dl.YoutubeDL = youtube_dl.YoutubeDL(
-        {'outtmpl': os.path.join(args.dir, '%(id)s.%(ext)s')})
+        {'outtmpl': os.path.join(args.dir, '%(id)s.%(ext)s'), 'format': '137/136/135/best'})
     for link in links:
         try: 
             ydl.download([link])
