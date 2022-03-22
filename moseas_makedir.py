@@ -16,6 +16,8 @@ def parse_args() -> argparse.Namespace:
                         help='Output destination')
     parser.add_argument('--overwrite', action="store_true",
                         help='Add to overwrite existing files')
+    parser.add_argument('--extractor', type=str, default="bin/FeatureExtraction",
+                        help='Path to the FeatureExtraction binary')
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
     return args
@@ -41,31 +43,32 @@ def make_dirs(args: argparse.Namespace):
             print("File {} is not a valid YouTube video id .mp4 file".format(file))
             sys.exit()
 
-    TOTAL_OPS = len(source_files) * 4
+    TOTAL_OPS = len(source_files) * 5
 
     with tqdm(total=TOTAL_OPS, miniters=1) as pbar:
         for file in source_files:
             id: str = file[:-4]
             pbar.write('Processing video with id {}'.format(id))
             dir_path: str = os.path.join(args.dest, id)
+            source_path: str = os.path.join(args.source, file)
             try_mkdir(dir_path, args.overwrite)
             for subdir in ['video', 'audio', 'feature_extraction']:
                 try_mkdir(os.path.join(dir_path, subdir), args.overwrite)
 
             if args.overwrite or not os.path.isfile(os.path.join(dir_path, 'video', file)):
-                shutil.copy(os.path.join(args.source, file),
+                shutil.copy(source_path,
                             os.path.join(dir_path, 'video', file))
             pbar.update(1)
 
             if args.overwrite or not os.path.isfile(os.path.join(dir_path, 'video', id + '_30fps.mp4')):
                 os.system('ffmpeg -y -i {} -filter:v fps=30 {} -hide_banner -loglevel error'
-                          .format(os.path.join(args.source, file),
+                          .format(source_path,
                                   os.path.join(dir_path, 'video', id + '_30fps.mp4')))
             pbar.update(1)
 
             if args.overwrite or not os.path.isfile(os.path.join(dir_path, 'audio', id + '.wav')):
                 os.system('ffmpeg -y -i {} -vn -acodec pcm_s16le -ar 44100 -ac 2 {} -hide_banner -loglevel error'
-                          .format(os.path.join(args.source, file),
+                          .format(source_path,
                                   os.path.join(dir_path, 'audio', id + '.wav')))
             pbar.update(1)
 
@@ -73,6 +76,13 @@ def make_dirs(args: argparse.Namespace):
                 os.system('ffmpeg -i {} -ar 16000 {} -hide_banner -loglevel error'
                           .format(os.path.join(dir_path, 'audio', id + '.wav'),
                                   os.path.join(dir_path, 'audio', id + '_16hz.wav')))
+            pbar.update(1)
+
+            if args.overwrite or not os.path.isdir(os.path.join(dir_path, 'feature_extraction', 'openface')):
+                os.system('{} -f {} {} -out_dir {}'
+                          .format(args.extractor, os.path.join(dir_path, 'video', id + '_30fps.mp4'),
+                                  '-q -2Dfp -3Dfp -pose -aus -gaze -multi-view 1 -wild',
+                                  os.path.join(dir_path, 'feature_extraction', 'openface')))
             pbar.update(1)
         pbar.close()
 
