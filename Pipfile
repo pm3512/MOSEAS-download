@@ -7,6 +7,7 @@ name = "pypi"
 pandas = "*"
 yt-dlp = "*"
 tqdm = "*"
+opencv-python = "*"
 
 [dev-packages]
 
